@@ -3,16 +3,16 @@
 
 namespace opencl {
 
-class ScopedArrayBufferContents {
+class ScopedBackingStore {
  public:
-  explicit ScopedArrayBufferContents(const v8::ArrayBuffer::Contents& contents)
-      : contents_(contents) {}
-  ~ScopedArrayBufferContents() { free(contents_.Data()); }
-  void* Data() const { return contents_.Data(); }
-  size_t ByteLength() const { return contents_.ByteLength(); }
+  explicit ScopedBackingStore(const v8::BackingStore& store)
+      : store_(store) {}
+  ~ScopedBackingStore() { free(store_.Data()); }
+  void* Data() const { return store_.Data(); }
+  size_t ByteLength() const { return store_.ByteLength(); }
 
  private:
-  const v8::ArrayBuffer::Contents contents_;
+  const v8::BackingStore store_;
 };
 
 // TODO replace TypedArray with node::Buffer or v8::ArrayBuffer (same thing)
@@ -35,23 +35,23 @@ void getPtrAndLen(const Local<Value> value, void* &ptr, size_t &len)
       Local<Object> obj = Nan::To<Object>(value).ToLocalChecked();
       Local<ArrayBuffer> ta = obj.As<ArrayBuffer>();
       len=ta->ByteLength();
-      ptr=ta->GetContents().Data();
+      ptr=ta->GetBackingStore()->Data();
     }
     else if(value->IsUint8Array()) {
       // WARNING node::Buffer is an augmented Uint8Array
       // std::cout<<"[getPtrAndLen] Uint8Array"<<std::endl;
       Local<Object> obj = Nan::To<Object>(value).ToLocalChecked();
       Local<Uint8Array> ui = obj.As<Uint8Array>();
-      ArrayBuffer::Contents ab_c = ui->Buffer()->GetContents();
+      std::shared_ptr<v8::BackingStore> ab_c = ui->Buffer()->GetBackingStore();
       len=ui->ByteLength();
-      ptr=static_cast<char*>(ab_c.Data()) + ui->ByteOffset();
+      ptr=static_cast<char*>(ab_c->Data()) + ui->ByteOffset();
     }
     else if(value->IsTypedArray()) {
       // std::cout<<"[getPtrAndLen] TypedArray"<<std::endl;
       Local<Object> obj = Nan::To<Object>(value).ToLocalChecked();
       Local<TypedArray> ta = obj.As<TypedArray>();
       len=ta->ByteLength();
-      ptr=static_cast<char*>(ta->Buffer()->GetContents().Data()) + ta->ByteOffset();
+      ptr=static_cast<char*>(ta->Buffer()->GetBackingStore()->Data()) + ta->ByteOffset();
     }
     // else if(value->IsObject()) {
       // shouldn't be called...

@@ -4,6 +4,7 @@
       'target_name': 'opencl',
       'defines': [
         'VERSION=0.4.5',
+        #'CL_TARGET_OPENCL_VERSION=300',
         'NOCL_REALEASE_DRIVER_ISSUES'
       ],
       'sources': [
@@ -60,7 +61,7 @@
             "<(AMD_OPENCL_SDK_LIB)", "<(NVIDA_CUDA_SDK_LIB)"
           ],
           'libraries': ['-lOpenCL'],
-          'cflags_cc': ['-std=c++11', '-Wall', '-O3', '-Wno-ignored-attributes']
+          'cflags_cc': ['-std=c++17', '-Wall', '-O3', '-Wno-ignored-attributes']
         }],
         ['OS=="win"', {
           'variables' :

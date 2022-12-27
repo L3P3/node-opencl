@@ -962,7 +962,12 @@ NAN_METHOD(EnqueueMapBuffer) {
 
   CHECK_ERR(err)
 
-  Local<v8::ArrayBuffer> obj = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), mPtr, size);
+  std::unique_ptr<v8::BackingStore> backing =
+    v8::ArrayBuffer::NewBackingStore(mPtr, size,
+                                    [](void*, size_t, void*){},
+                                    nullptr);
+
+  Local<v8::ArrayBuffer> obj = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), std::move(backing));
 
   Nan::Set(obj, JS_STR("event"), NOCL_WRAP(NoCLEvent,event));
 
@@ -1034,7 +1039,12 @@ NAN_METHOD(EnqueueMapImage) {
     size = image_slice_pitch * region[2];
   }
 
-  Local<v8::ArrayBuffer> obj = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), mPtr, size);
+  std::unique_ptr<v8::BackingStore> backing =
+    v8::ArrayBuffer::NewBackingStore(mPtr, size,
+                                    [](void*, size_t, void*){},
+                                    nullptr);
+
+  Local<v8::ArrayBuffer> obj = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), std::move(backing));
 
   Nan::Set(obj, JS_STR("event"), NOCL_WRAP(NoCLEvent,event));
   Nan::Set(obj, JS_STR("image_row_pitch"), Nan::New(static_cast<int>(image_row_pitch)));

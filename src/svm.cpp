@@ -36,7 +36,12 @@ NAN_METHOD(SVMAlloc) {
   if(mPtr == NULL)
     THROW_ERR(CL_INVALID_ARG_VALUE);
 
-  Local<v8::ArrayBuffer> obj = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), mPtr, size);
+  std::unique_ptr<v8::BackingStore> backing =
+    v8::ArrayBuffer::NewBackingStore(mPtr, size,
+                                    [](void*, size_t, void*){},
+                                    nullptr);
+
+  Local<v8::ArrayBuffer> obj = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), std::move(backing));
 
   info.GetReturnValue().Set(obj);
 }
